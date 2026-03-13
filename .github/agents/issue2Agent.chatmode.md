@@ -1,5 +1,6 @@
 ---
 name: issue2Agent
+mode: agent
 description: "Agent mode for Issue 2 — Improved Customisability: flexible filtering, column sorting, theme switching (light/dark/focus), and column visibility for the EMS React frontend."
 tools: []
 ---
