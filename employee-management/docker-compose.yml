@@ -1,0 +1,20 @@
+version: '3.9'
+
+services:
+  app:
+    build: .
+    container_name: ems-app
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      JWT_SECRET: ${JWT_SECRET:-change_this_in_production}
+      ALLOWED_ORIGIN: ${ALLOWED_ORIGIN:-http://localhost:3000}
+    volumes:
+      # Persist the SQLite database outside the container
+      - ems-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  ems-data:

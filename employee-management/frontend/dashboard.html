@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EMS — Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f8; color: #2d3436; display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 230px; min-height: 100vh; background: linear-gradient(180deg, #1a237e 0%, #283593 100%);
+      color: #fff; display: flex; flex-direction: column; padding: 0; flex-shrink: 0; position: fixed; top: 0; left: 0; height: 100vh; z-index: 10;
+    }
+    .sidebar-brand { padding: 1.8rem 1.5rem 1.2rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-brand h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: 0.3px; }
+    .sidebar-brand p { font-size: 0.75rem; opacity: 0.6; margin-top: 0.2rem; }
+    .sidebar-nav { flex: 1; padding: 1rem 0; }
+    .nav-item { display: flex; align-items: center; gap: 0.8rem; padding: 0.75rem 1.5rem; cursor: pointer; transition: background 0.2s; text-decoration: none; color: rgba(255,255,255,0.8); font-size: 0.95rem; }
+    .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.12); color: #fff; }
+    .nav-item svg { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
+    .sidebar-footer { padding: 1.2rem 1.5rem; border-top: 1px solid rgba(255,255,255,0.1); }
+    .user-info { display: flex; align-items: center; gap: 0.7rem; }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
+    .user-details p { font-size: 0.88rem; font-weight: 600; }
+    .user-details span { font-size: 0.75rem; opacity: 0.6; }
+    .logout-btn { margin-top: 0.8rem; background: rgba(255,255,255,0.1); border: none; color: rgba(255,255,255,0.8); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; width: 100%; text-align: left; transition: background 0.2s; }
+    .logout-btn:hover { background: rgba(255,255,255,0.2); }
+
+    /* Main */
+    .main { margin-left: 230px; flex: 1; padding: 2rem; min-height: 100vh; }
+    .page-title { font-size: 1.5rem; font-weight: 700; color: #1a237e; margin-bottom: 0.3rem; }
+    .page-sub { color: #888; font-size: 0.9rem; margin-bottom: 2rem; }
+
+    /* Stat cards */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.2rem; margin-bottom: 2rem; }
+    .stat-card {
+      background: #fff; border-radius: 12px; padding: 1.4rem 1.5rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 1rem;
+    }
+    .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .stat-icon svg { width: 24px; height: 24px; fill: #fff; }
+    .stat-card h3 { font-size: 0.82rem; color: #888; font-weight: 500; margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-card p { font-size: 1.7rem; font-weight: 700; color: #1a237e; }
+
+    /* Chart cards */
+    .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+    .chart-card { background: #fff; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .chart-card h3 { font-size: 1rem; font-weight: 700; color: #1a237e; margin-bottom: 1.2rem; padding-bottom: 0.8rem; border-bottom: 1px solid #f0f0f0; }
+    .bar-item { margin-bottom: 0.9rem; }
+    .bar-label { display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 0.3rem; color: #555; }
+    .bar-track { background: #f0f2f8; border-radius: 99px; height: 8px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #1a237e, #4078c0); transition: width 0.6s ease; }
+
+    .hidden { display: none !important; }
+    @media (max-width: 900px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .charts-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 650px) {
+      .sidebar { width: 100%; min-height: auto; height: auto; position: relative; flex-direction: row; flex-wrap: wrap; }
+      .main { margin-left: 0; }
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <h2>EMS Portal</h2>
+      <p>Employee Management</p>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item active" href="dashboard.html">
+        <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item" href="employees.html">
+        <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        Employees
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="avatar" id="avatar-initials">A</div>
+        <div class="user-details">
+          <p id="sidebar-user">Admin</p>
+          <span>Administrator</span>
+        </div>
+      </div>
+      <button class="logout-btn" id="logout-btn">Sign Out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="page-title">Dashboard</div>
+    <div class="page-sub">Welcome back! Here's your workforce overview.</div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg,#1a237e,#4078c0)">
+          <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        </div>
+        <div><h3>Total Employees</h3><p id="total">—</p></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg,#00897b,#26c6da)">
+          <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+        </div>
+        <div><h3>Avg. Salary</h3><p id="avg-salary">—</p></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg,#6a1b9a,#ab47bc)">
+          <svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>
+        </div>
+        <div><h3>Departments</h3><p id="dept-count">—</p></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg,#e65100,#ff7043)">
+          <svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.36C18 2.53 16.48 1 14.64 1 13.6 1 12.8 1.48 12.2 2.38L12 2.67l-.2-.29C11.2 1.48 10.4 1 9.36 1 7.52 1 6 2.53 6 4.64c0 .48.11.92.18 1.36H4c-1.1 0-1.99.9-1.99 2L2 19c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>
+        </div>
+        <div><h3>Roles</h3><p id="role-count">—</p></div>
+      </div>
+    </div>
+
+    <div class="charts-row">
+      <div class="chart-card">
+        <h3>Employees by Department</h3>
+        <div id="dept-bars"></div>
+      </div>
+      <div class="chart-card">
+        <h3>Employees by Role</h3>
+        <div id="role-bars"></div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function getToken() { return localStorage.getItem('ems_token'); }
+    function authHeaders() { return { 'Authorization': 'Bearer ' + getToken() }; }
+    if (!getToken()) window.location.href = 'index.html';
+
+    const user = localStorage.getItem('ems_user') || 'Admin';
+    document.getElementById('sidebar-user').textContent = user;
+    document.getElementById('avatar-initials').textContent = user.charAt(0).toUpperCase();
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      localStorage.clear(); window.location.href = 'index.html';
+    });
+
+    function renderBars(containerId, items, labelKey) {
+      const max = Math.max(...items.map(i => i.count), 1);
+      document.getElementById(containerId).innerHTML = items.map(item => `
+        <div class="bar-item">
+          <div class="bar-label"><span>${item[labelKey]}</span><span>${item.count}</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:${(item.count/max*100).toFixed(1)}%"></div></div>
+        </div>`).join('');
+    }
+
+    fetch('/api/dashboard/stats', { headers: authHeaders() })
+      .then(r => r.json())
+      .then(data => {
+        document.getElementById('total').textContent = data.total;
+        document.getElementById('avg-salary').textContent = '$' + Number(data.avgSalary).toLocaleString();
+        document.getElementById('dept-count').textContent = data.byDepartment.length;
+        document.getElementById('role-count').textContent = data.byRole.length;
+        renderBars('dept-bars', data.byDepartment, 'department');
+        renderBars('role-bars', data.byRole, 'role');
+      });
+  </script>
+</body>
+</html>

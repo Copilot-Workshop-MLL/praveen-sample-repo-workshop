@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EMS — Employees</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f8; color: #2d3436; display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar { width: 230px; min-height: 100vh; background: linear-gradient(180deg,#1a237e 0%,#283593 100%); color:#fff; display:flex; flex-direction:column; position:fixed; top:0; left:0; height:100vh; z-index:10; }
+    .sidebar-brand { padding:1.8rem 1.5rem 1.2rem; border-bottom:1px solid rgba(255,255,255,0.1); }
+    .sidebar-brand h2 { font-size:1.05rem; font-weight:700; }
+    .sidebar-brand p { font-size:0.75rem; opacity:0.6; margin-top:0.2rem; }
+    .sidebar-nav { flex:1; padding:1rem 0; }
+    .nav-item { display:flex; align-items:center; gap:0.8rem; padding:0.75rem 1.5rem; text-decoration:none; color:rgba(255,255,255,0.8); font-size:0.95rem; transition:background 0.2s; }
+    .nav-item:hover, .nav-item.active { background:rgba(255,255,255,0.12); color:#fff; }
+    .nav-item svg { width:18px; height:18px; fill:currentColor; flex-shrink:0; }
+    .sidebar-footer { padding:1.2rem 1.5rem; border-top:1px solid rgba(255,255,255,0.1); }
+    .user-info { display:flex; align-items:center; gap:0.7rem; }
+    .avatar { width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.9rem; }
+    .user-details p { font-size:0.88rem; font-weight:600; }
+    .user-details span { font-size:0.75rem; opacity:0.6; }
+    .logout-btn { margin-top:0.8rem; background:rgba(255,255,255,0.1); border:none; color:rgba(255,255,255,0.8); padding:0.5rem 1rem; border-radius:6px; cursor:pointer; font-size:0.85rem; width:100%; text-align:left; transition:background 0.2s; }
+    .logout-btn:hover { background:rgba(255,255,255,0.2); }
+
+    /* Main */
+    .main { margin-left:230px; flex:1; padding:2rem; }
+    .page-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem; }
+    .page-title { font-size:1.5rem; font-weight:700; color:#1a237e; }
+    .page-sub { color:#888; font-size:0.9rem; margin-top:0.2rem; }
+
+    /* Filters */
+    .filters { display:flex; gap:0.8rem; margin-bottom:1.2rem; flex-wrap:wrap; }
+    .filters input { padding:0.6rem 0.9rem; border:1.5px solid #dcdde1; border-radius:8px; font-size:0.9rem; outline:none; background:#fff; transition:border 0.2s; flex:1; min-width:160px; }
+    .filters input:focus { border-color:#4078c0; }
+
+    /* Table card */
+    .table-card { background:#fff; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,0.06); overflow:hidden; }
+    table { width:100%; border-collapse:collapse; }
+    thead tr { background:#1a237e; }
+    th { color:#fff; padding:0.9rem 1rem; text-align:left; font-size:0.82rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; }
+    td { padding:0.85rem 1rem; border-bottom:1px solid #f0f2f8; font-size:0.92rem; color:#2d3436; }
+    tr:last-child td { border-bottom:none; }
+    tbody tr:hover td { background:#f8f9ff; }
+    .badge { display:inline-block; padding:0.2rem 0.7rem; border-radius:99px; font-size:0.78rem; font-weight:600; }
+    .badge-dept { background:#e8eaf6; color:#1a237e; }
+    .badge-role { background:#e0f2f1; color:#00695c; }
+
+    /* Buttons */
+    .btn-primary { background:linear-gradient(135deg,#1a237e,#4078c0); color:#fff; border:none; border-radius:8px; padding:0.65rem 1.3rem; font-size:0.9rem; font-weight:600; cursor:pointer; transition:opacity 0.2s; white-space:nowrap; }
+    .btn-primary:hover { opacity:0.9; }
+    .btn-secondary { background:#f0f2f8; color:#2d3436; border:none; border-radius:8px; padding:0.65rem 1.3rem; font-size:0.9rem; cursor:pointer; transition:background 0.2s; }
+    .btn-secondary:hover { background:#dcdde1; }
+    .btn-edit { background:#fff3e0; color:#e65100; border:none; border-radius:6px; padding:0.3rem 0.8rem; font-size:0.82rem; font-weight:600; cursor:pointer; margin-right:0.4rem; }
+    .btn-edit:hover { background:#ffe0b2; }
+    .btn-delete { background:#fce4ec; color:#c62828; border:none; border-radius:6px; padding:0.3rem 0.8rem; font-size:0.82rem; font-weight:600; cursor:pointer; }
+    .btn-delete:hover { background:#ffcdd2; }
+
+    /* Modal */
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:flex; justify-content:center; align-items:center; z-index:100; }
+    .modal-overlay.hidden { display:none; }
+    .modal-box { background:#fff; border-radius:16px; padding:2rem; width:100%; max-width:480px; box-shadow:0 8px 40px rgba(0,0,0,0.2); }
+    .modal-box h2 { font-size:1.2rem; font-weight:700; color:#1a237e; margin-bottom:1.2rem; padding-bottom:0.8rem; border-bottom:1px solid #f0f0f0; }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; }
+    .form-group { display:flex; flex-direction:column; gap:0.3rem; }
+    .form-group.full { grid-column:1/-1; }
+    .form-group label { font-size:0.82rem; font-weight:600; color:#555; }
+    .form-group input { padding:0.65rem 0.9rem; border:1.5px solid #dcdde1; border-radius:8px; font-size:0.92rem; outline:none; transition:border 0.2s; }
+    .form-group input:focus { border-color:#4078c0; }
+    .modal-actions { display:flex; gap:0.8rem; margin-top:1.2rem; justify-content:flex-end; }
+    .error { background:#fff0f0; color:#c0392b; border:1px solid #f5c6cb; border-radius:8px; padding:0.6rem 1rem; font-size:0.88rem; margin-bottom:1rem; }
+    .hidden { display:none !important; }
+    .empty-state { text-align:center; padding:3rem 1rem; color:#aaa; font-size:0.95rem; }
+
+    @media (max-width:800px) {
+      .sidebar { display:none; }
+      .main { margin-left:0; padding:1rem; }
+      .form-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-brand"><h2>EMS Portal</h2><p>Employee Management</p></div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="dashboard.html">
+        <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>Dashboard
+      </a>
+      <a class="nav-item active" href="employees.html">
+        <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Employees
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="avatar" id="avatar">A</div>
+        <div class="user-details"><p id="sidebar-user">Admin</p><span>Administrator</span></div>
+      </div>
+      <button class="logout-btn" id="logout-btn">Sign Out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <div><div class="page-title">Employees</div><div class="page-sub">Manage your workforce</div></div>
+      <button class="btn-primary" onclick="openModal()">+ Add Employee</button>
+    </div>
+
+    <div class="filters">
+      <input type="text" id="filter-dept" placeholder="🔍 Filter by department" />
+      <input type="text" id="filter-role" placeholder="🔍 Filter by role" />
+      <button class="btn-primary" onclick="loadEmployees()">Search</button>
+      <button class="btn-secondary" onclick="clearFilters()">Clear</button>
+    </div>
+
+    <div id="error-msg" class="error hidden"></div>
+
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Name</th><th>Email</th><th>Department</th><th>Role</th><th>Hire Date</th><th>Salary</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="emp-tbody"><tr><td colspan="8" class="empty-state">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Modal -->
+  <div id="modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <h2 id="modal-title">Add Employee</h2>
+      <div id="modal-error" class="error hidden"></div>
+      <form id="emp-form">
+        <input type="hidden" id="emp-id">
+        <div class="form-grid">
+          <div class="form-group"><label>Full Name</label><input type="text" id="emp-name" placeholder="John Doe" required/></div>
+          <div class="form-group"><label>Email</label><input type="email" id="emp-email" placeholder="john@example.com" required/></div>
+          <div class="form-group"><label>Department</label><input type="text" id="emp-dept" placeholder="Engineering" required/></div>
+          <div class="form-group"><label>Role</label><input type="text" id="emp-role" placeholder="Developer" required/></div>
+          <div class="form-group"><label>Hire Date</label><input type="date" id="emp-hire" required/></div>
+          <div class="form-group"><label>Salary ($)</label><input type="number" id="emp-salary" placeholder="60000" min="0" required/></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn-primary">Save Employee</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function getToken() { return localStorage.getItem('ems_token'); }
+    function authHeaders() { return { 'Authorization': 'Bearer ' + getToken() }; }
+    if (!getToken()) window.location.href = 'index.html';
+
+    const user = localStorage.getItem('ems_user') || 'Admin';
+    document.getElementById('sidebar-user').textContent = user;
+    document.getElementById('avatar').textContent = user.charAt(0).toUpperCase();
+    document.getElementById('logout-btn').addEventListener('click', () => { localStorage.clear(); window.location.href = 'index.html'; });
+
+    function clearFilters() {
+      document.getElementById('filter-dept').value = '';
+      document.getElementById('filter-role').value = '';
+      loadEmployees();
+    }
+
+    async function loadEmployees() {
+      const dept = document.getElementById('filter-dept').value.trim();
+      const role = document.getElementById('filter-role').value.trim();
+      let url = '/api/employees?';
+      if (dept) url += `department=${encodeURIComponent(dept)}&`;
+      if (role) url += `role=${encodeURIComponent(role)}`;
+      const res = await fetch(url, { headers: authHeaders() });
+      const data = await res.json();
+      const tbody = document.getElementById('emp-tbody');
+      if (!data.length) { tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No employees found.</td></tr>'; return; }
+      tbody.innerHTML = data.map(e => `
+        <tr>
+          <td>#${e.id}</td>
+          <td><strong>${e.name}</strong></td>
+          <td>${e.email}</td>
+          <td><span class="badge badge-dept">${e.department}</span></td>
+          <td><span class="badge badge-role">${e.role}</span></td>
+          <td>${e.hireDate}</td>
+          <td>$${Number(e.salary).toLocaleString()}</td>
+          <td>
+            <button class="btn-edit" onclick='editEmployee(${JSON.stringify(e)})'>Edit</button>
+            <button class="btn-delete" onclick="deleteEmployee(${e.id})">Delete</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    function openModal(emp) {
+      document.getElementById('modal').classList.remove('hidden');
+      document.getElementById('modal-title').textContent = emp ? 'Edit Employee' : 'Add Employee';
+      document.getElementById('emp-id').value = emp?.id || '';
+      document.getElementById('emp-name').value = emp?.name || '';
+      document.getElementById('emp-email').value = emp?.email || '';
+      document.getElementById('emp-dept').value = emp?.department || '';
+      document.getElementById('emp-role').value = emp?.role || '';
+      document.getElementById('emp-hire').value = emp?.hireDate || '';
+      document.getElementById('emp-salary').value = emp?.salary || '';
+      document.getElementById('modal-error').classList.add('hidden');
+    }
+    function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+    function editEmployee(emp) { openModal(emp); }
+
+    document.getElementById('emp-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('emp-id').value;
+      const body = {
+        name: document.getElementById('emp-name').value,
+        email: document.getElementById('emp-email').value,
+        department: document.getElementById('emp-dept').value,
+        role: document.getElementById('emp-role').value,
+        hireDate: document.getElementById('emp-hire').value,
+        salary: Number(document.getElementById('emp-salary').value)
+      };
+      const res = await fetch(id ? `/api/employees/${id}` : '/api/employees', {
+        method: id ? 'PUT' : 'POST',
+        headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (res.ok) { closeModal(); loadEmployees(); }
+      else {
+        const d = await res.json();
+        const errEl = document.getElementById('modal-error');
+        errEl.textContent = d.message || (d.errors ? d.errors.join(', ') : 'Error saving employee');
+        errEl.classList.remove('hidden');
+      }
+    });
+
+    async function deleteEmployee(id) {
+      if (!confirm('Are you sure you want to delete this employee?')) return;
+      await fetch(`/api/employees/${id}`, { method: 'DELETE', headers: authHeaders() });
+      loadEmployees();
+    }
+
+    loadEmployees();
+  </script>
+</body>
+</html>
+    <div class="page-header">
+      <h1>Employees</h1>
+      <button class="btn-primary" onclick="openModal()">+ Add Employee</button>
+    </div>
+    <div class="filters">
+      <input type="text" id="filter-dept" placeholder="Filter by department" />
+      <input type="text" id="filter-role" placeholder="Filter by role" />
+      <button class="btn-secondary" onclick="loadEmployees()">Search</button>
+    </div>
+    <div id="error-msg" class="error hidden"></div>
+    <table class="table" id="emp-table">
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Email</th><th>Department</th><th>Role</th><th>Hire Date</th><th>Salary</th><th>Actions</th></tr>
+      </thead>
+      <tbody id="emp-tbody"></tbody>
+    </table>
+
+    <!-- Modal -->
+    <div id="modal" class="modal hidden">
+      <div class="modal-content">
+        <h2 id="modal-title">Add Employee</h2>
+        <form id="emp-form">
+          <input type="hidden" id="emp-id">
+          <label>Name</label><input type="text" id="emp-name" required>
+          <label>Email</label><input type="email" id="emp-email" required>
+          <label>Department</label><input type="text" id="emp-dept" required>
+          <label>Role</label><input type="text" id="emp-role" required>
+          <label>Hire Date</label><input type="date" id="emp-hire" required>
+          <label>Salary</label><input type="number" id="emp-salary" required min="0">
+          <div class="modal-actions">
+            <button type="submit" class="btn-primary">Save</button>
+            <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+  <script src="assets/app.js"></script>
+  <script>
+    requireAuth();
+    loadEmployees();
+
+    function loadEmployees() {
+      const dept = document.getElementById('filter-dept').value;
+      const role = document.getElementById('filter-role').value;
+      let url = '/api/employees?';
+      if (dept) url += `department=${encodeURIComponent(dept)}&`;
+      if (role) url += `role=${encodeURIComponent(role)}`;
+      fetch(url, { headers: authHeaders() })
+        .then(r => r.json())
+        .then(data => {
+          const tbody = document.getElementById('emp-tbody');
+          tbody.innerHTML = data.map(e => `
+            <tr>
+              <td>${e.id}</td><td>${e.name}</td><td>${e.email}</td>
+              <td>${e.department}</td><td>${e.role}</td>
+              <td>${e.hireDate}</td><td>$${e.salary}</td>
+              <td>
+                <button class="btn-edit" onclick='editEmployee(${JSON.stringify(e)})'>Edit</button>
+                <button class="btn-delete" onclick="deleteEmployee(${e.id})">Delete</button>
+              </td>
+            </tr>`).join('');
+        });
+    }
+
+    function openModal(emp) {
+      document.getElementById('modal').classList.remove('hidden');
+      document.getElementById('modal-title').textContent = emp ? 'Edit Employee' : 'Add Employee';
+      document.getElementById('emp-id').value = emp ? emp.id : '';
+      document.getElementById('emp-name').value = emp ? emp.name : '';
+      document.getElementById('emp-email').value = emp ? emp.email : '';
+      document.getElementById('emp-dept').value = emp ? emp.department : '';
+      document.getElementById('emp-role').value = emp ? emp.role : '';
+      document.getElementById('emp-hire').value = emp ? emp.hireDate : '';
+      document.getElementById('emp-salary').value = emp ? emp.salary : '';
+    }
+    function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+    function editEmployee(emp) { openModal(emp); }
+
+    document.getElementById('emp-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('emp-id').value;
+      const body = {
+        name: document.getElementById('emp-name').value,
+        email: document.getElementById('emp-email').value,
+        department: document.getElementById('emp-dept').value,
+        role: document.getElementById('emp-role').value,
+        hireDate: document.getElementById('emp-hire').value,
+        salary: Number(document.getElementById('emp-salary').value)
+      };
+      const method = id ? 'PUT' : 'POST';
+      const url = id ? `/api/employees/${id}` : '/api/employees';
+      const res = await fetch(url, { method, headers: { ...authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (res.ok) { closeModal(); loadEmployees(); }
+      else { const d = await res.json(); alert(d.message || 'Error saving employee'); }
+    });
+
+    async function deleteEmployee(id) {
+      if (!confirm('Delete this employee?')) return;
+      await fetch(`/api/employees/${id}`, { method: 'DELETE', headers: authHeaders() });
+      loadEmployees();
+    }
+  </script>
+</body>
+</html>

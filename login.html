@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Page</title>
+  <style>
+    body {
+      background: #f5f6fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    .login-container {
+      background: #fff;
+      padding: 2rem 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      width: 100%;
+      max-width: 350px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+    .login-container h2 {
+      margin: 0 0 1rem 0;
+      text-align: center;
+      color: #273c75;
+    }
+    .login-container label {
+      font-size: 1rem;
+      color: #353b48;
+      margin-bottom: 0.3rem;
+    }
+    .login-container input[type="text"],
+    .login-container input[type="password"] {
+      padding: 0.7rem;
+      border: 1px solid #dcdde1;
+      border-radius: 6px;
+      font-size: 1rem;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .login-container input[type="text"]:focus,
+    .login-container input[type="password"]:focus {
+      border: 1.5px solid #4078c0;
+    }
+    .login-container button {
+      background: #4078c0;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.8rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .login-container button:hover {
+      background: #273c75;
+    }
+    @media (max-width: 500px) {
+      .login-container {
+        padding: 1.2rem 1rem;
+        max-width: 95vw;
+      }
+    }
+  </style>
+</head>
+<body>
+  <form class="login-container">
+    <h2>Login</h2>
+    <div>
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" required />
+    </div>
+    <div>
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required />
+    </div>
+    <button type="submit">Sign In</button>
+  </form>
+</body>
+</html>

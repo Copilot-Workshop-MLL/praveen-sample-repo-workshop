@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EMS — Login</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a237e 0%, #4078c0 100%);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .card {
+      background: #fff; border-radius: 16px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+      padding: 2.8rem 2.5rem 2.2rem;
+      width: 100%; max-width: 400px;
+    }
+    .logo { text-align: center; margin-bottom: 1.8rem; }
+    .logo-icon {
+      width: 60px; height: 60px; border-radius: 16px;
+      background: linear-gradient(135deg, #1a237e, #4078c0);
+      display: inline-flex; align-items: center; justify-content: center; margin-bottom: 0.8rem;
+    }
+    .logo-icon svg { width: 32px; height: 32px; fill: #fff; }
+    .logo h1 { font-size: 1.5rem; color: #1a237e; font-weight: 700; }
+    .logo p { color: #888; font-size: 0.9rem; margin-top: 0.3rem; }
+    .form-group { margin-bottom: 1.2rem; }
+    label { display: block; font-size: 0.88rem; font-weight: 600; color: #444; margin-bottom: 0.4rem; }
+    input[type="text"], input[type="password"] {
+      width: 100%; padding: 0.75rem 1rem;
+      border: 1.5px solid #dcdde1; border-radius: 8px;
+      font-size: 1rem; outline: none; background: #f8f9ff; transition: border 0.2s;
+    }
+    input:focus { border-color: #4078c0; background: #fff; }
+    .btn {
+      width: 100%; padding: 0.85rem;
+      background: linear-gradient(135deg, #1a237e, #4078c0);
+      color: #fff; border: none; border-radius: 8px;
+      font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 0.5rem; transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.9; }
+    .error {
+      background: #fff0f0; color: #c0392b;
+      border: 1px solid #f5c6cb; border-radius: 8px;
+      padding: 0.7rem 1rem; font-size: 0.9rem; margin-bottom: 1rem;
+    }
+    .hidden { display: none !important; }
+    .footer-text { text-align: center; color: #aaa; font-size: 0.8rem; margin-top: 1.5rem; }
+    @media (max-width: 480px) { .card { padding: 2rem 1.2rem; margin: 1rem; } }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+      </div>
+      <h1>Employee Management</h1>
+      <p>Sign in to your account</p>
+    </div>
+    <div id="error-msg" class="error hidden"></div>
+    <form id="login-form">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="Enter your username" required />
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter your password" required />
+      </div>
+      <button type="submit" class="btn">Sign In</button>
+    </form>
+    <p class="footer-text">Default credentials: admin / admin123</p>
+  </div>
+  <script>
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errEl = document.getElementById('error-msg');
+      errEl.classList.add('hidden');
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          localStorage.setItem('ems_token', data.token);
+          localStorage.setItem('ems_user', username);
+          window.location.href = 'dashboard.html';
+        } else {
+          errEl.textContent = data.message || 'Login failed';
+          errEl.classList.remove('hidden');
+        }
+      } catch {
+        errEl.textContent = 'Cannot connect to server.';
+        errEl.classList.remove('hidden');
+      }
+    });
+  </script>
+</body>
+</html>

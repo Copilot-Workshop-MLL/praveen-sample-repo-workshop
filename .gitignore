@@ -1,0 +1,4 @@
+node_modules
+employee-management/.env
+employee-management/database.sqlite
+employee-management/frontend-react/dist
