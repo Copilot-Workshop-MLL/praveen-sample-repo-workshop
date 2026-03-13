@@ -94,6 +94,7 @@ employee-management/
 | `PUT`    | `/api/employees/:id`      | ✅   | Update employee           |
 | `DELETE` | `/api/employees/:id`      | ✅   | Delete employee           |
 | `GET`    | `/api/dashboard/stats`    | ✅   | Dashboard statistics      |
+| `GET`    | `/api/dashboard/trends`   | ✅   | 6-month monthly trends    |
 
 ---
 

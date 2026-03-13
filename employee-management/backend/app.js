@@ -56,9 +56,18 @@ app.use('/api/auth/login', loginLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/employees', employeeRoutes);
 
-// Dashboard stats (protected)
+// Dashboard routes (protected)
 const authMiddleware = require('./middleware/authMiddleware');
-app.get('/api/dashboard/stats', authMiddleware, require('./controllers/dashboardController').getStats);
+const dashboardController = require('./controllers/dashboardController');
+const dashboardLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 60,             // max 60 requests per minute per IP
+  message: { message: 'Too many requests. Please try again shortly.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.get('/api/dashboard/stats', dashboardLimiter, authMiddleware, dashboardController.getStats);
+app.get('/api/dashboard/trends', dashboardLimiter, authMiddleware, dashboardController.getTrends);
 
 // ── Central error handler ─────────────────────────────────────
 app.use(errorHandler);

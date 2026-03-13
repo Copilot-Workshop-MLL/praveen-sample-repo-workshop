@@ -125,6 +125,38 @@ BarChart.propTypes = {
   labelKey: PropTypes.string.isRequired,
 };
 
+// ── Trend bar chart (for monthly data) ───────────────────────
+function TrendChart({ title, items, valueKey, labelKey, formatValue }) {
+  const max = Math.max(...items.map(i => i[valueKey]), 1);
+  return (
+    <div className="chart-card">
+      <h3>{title}</h3>
+      {items.length === 0 && <p className="empty-hint">No data available for the last 6 months.</p>}
+      {items.map(item => (
+        <div className="bar-item" key={item[labelKey]}>
+          <div className="bar-label">
+            <span>{item[labelKey]}</span>
+            <span>{formatValue ? formatValue(item[valueKey]) : item[valueKey]}</span>
+          </div>
+          <div className="bar-track">
+            <div className="bar-fill" style={{
+              '--bar-width': `${(item[valueKey] / max) * 100}%`,
+              background: 'linear-gradient(90deg,#1a237e,#4078c0)',
+            }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+TrendChart.propTypes = {
+  title:       PropTypes.string.isRequired,
+  items:       PropTypes.array.isRequired,
+  valueKey:    PropTypes.string.isRequired,
+  labelKey:    PropTypes.string.isRequired,
+  formatValue: PropTypes.func,
+};
+
 // ── Skeleton loader ───────────────────────────────────────────
 // Varied widths give the skeleton a realistic, non-uniform look
 const SKELETON_BAR_WIDTHS = [80, 55, 70, 45, 65];
@@ -160,15 +192,49 @@ function SkeletonChart() {
   );
 }
 
+// ── Activity summary card ─────────────────────────────────────
+function ActivitySummary({ count }) {
+  return (
+    <div className="activity-card">
+      <span className="activity-icon">🎯</span>
+      <div>
+        <div className="activity-label">Session Activity</div>
+        <div className="activity-value">
+          {count === 0
+            ? 'No actions yet this session.'
+            : count >= 5
+              ? `🎉 Great work! You've updated ${count} records today.`
+              : `You have updated ${count} record${count !== 1 ? 's' : ''} this session.`}
+        </div>
+      </div>
+    </div>
+  );
+}
+ActivitySummary.propTypes = { count: PropTypes.number.isRequired };
+
 // ── Dashboard page ────────────────────────────────────────────
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
+  const [trends, setTrends] = useState(null);
   const [error, setError] = useState('');
+  const [activityCount, setActivityCount] = useState(
+    parseInt(sessionStorage.getItem('ems_activity_count') || '0')
+  );
 
   useEffect(() => {
     apiFetch('/api/dashboard/stats')
       .then(setStats)
       .catch(e => setError(e.message));
+    apiFetch('/api/dashboard/trends')
+      .then(setTrends)
+      .catch(() => setTrends({ monthlyTrends: [], departmentTrends: [] }));
+  }, []);
+
+  // Keep activity count in sync with sessionStorage updates from Employees page
+  useEffect(() => {
+    const sync = () => setActivityCount(parseInt(sessionStorage.getItem('ems_activity_count') || '0'));
+    window.addEventListener('focus', sync);
+    return () => window.removeEventListener('focus', sync);
   }, []);
 
   const avgSalary = stats ? Number(stats.avgSalary) : 0;
@@ -180,6 +246,9 @@ export default function Dashboard() {
         <div className="page-title">Dashboard</div>
         <div className="page-sub">Welcome back! Here&apos;s your workforce overview.</div>
         {error && <div className="error-msg">{error}</div>}
+
+        <ActivitySummary count={activityCount} />
+
         {stats ? (
           <>
             <div className="stats-grid">
@@ -228,7 +297,31 @@ export default function Dashboard() {
             </div>
           </>
         )}
+
+        <div className="section-title">📊 6-Month Statistics</div>
+        {trends ? (
+          <div className="charts-row">
+            <TrendChart
+              title="New Hires per Month"
+              items={trends.monthlyTrends}
+              valueKey="newHires"
+              labelKey="month"
+            />
+            <TrendChart
+              title="Avg. Salary Trend"
+              items={trends.monthlyTrends}
+              valueKey="avgSalary"
+              labelKey="month"
+              formatValue={v => `$${Math.round(v).toLocaleString()}`}
+            />
+          </div>
+        ) : !error && (
+          <div className="charts-row">
+            <SkeletonChart /><SkeletonChart />
+          </div>
+        )}
       </main>
     </div>
   );
 }
+
